@@ -1,3 +1,3 @@
 # command to execute window in real time
 
-# python cont.py --video rodoviaComZoomDireita.mp4 --show
+# python cont.py --video rodoviaSemZoom.mp4 --show --line_percent 60

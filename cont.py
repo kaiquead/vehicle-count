@@ -14,15 +14,17 @@ except Exception as e:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Vehicle counting on a local video using YOLOv8 + ByteTrack.")
-    parser.add_argument("--video", required=True, help="rodoviaComZoomDireita.mp4")
-    parser.add_argument("--output", default="contadoZoomDireita.mp4", help="Path to save annotated output video (MP4).")
+    parser.add_argument("--video", required=True, help="rodoviaSemZoom.mp4")
+    parser.add_argument("--output", default="contadoRodoviaSemZoom.mp4", help="Path to save annotated output video (MP4).")
     parser.add_argument("--weights", default="yolov8n.pt", help="YOLO weights path or name (e.g., yolov8n.pt).")
     parser.add_argument("--conf", type=float, default=0.3, help="Confidence threshold.")
     parser.add_argument("--iou", type=float, default=0.5, help="NMS IoU threshold.")
     parser.add_argument("--classes", default="car,motorcycle,bus,truck",
                         help="Comma-separated class names to count (must exist in model.names).")
     parser.add_argument("--line", nargs=4, type=int, metavar=("x1","y1","x2","y2"),
-                        help="Counting line as 4 integers in pixels. If omitted, a horizontal line through the middle is used.")
+                        help="Counting line as 4 integers in pixels.")
+    parser.add_argument("--line_percent", type=int,
+                        help="Position of a horizontal line in percent of height (0=top, 100=bottom).")
     parser.add_argument("--show", action="store_true", help="Show a realtime preview window.")
     parser.add_argument("--device", default=None, help="Set device, e.g., 'cpu', '0' (GPU 0). Default: auto.")
     return parser.parse_args()
@@ -62,11 +64,14 @@ def main():
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap.release()
 
-    if args.line is None:
-        # Default: horizontal line across the middle of the frame
-        x1, y1, x2, y2 = 0, height // 5, width, height // 5
-    else:
+    if args.line is not None:
         x1, y1, x2, y2 = args.line
+    elif args.line_percent is not None:
+        y = int((args.line_percent / 100.0) * height)
+        x1, y1, x2, y2 = 0, y, width, y
+    else:
+        # Padrão: meio da tela
+        x1, y1, x2, y2 = 0, height // 2, width, height // 2
 
     # Prepare video writer
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
